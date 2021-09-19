@@ -20,14 +20,15 @@
         </div>
         <div
           class="col-lg-7 d-flex justify-content-center align-items-center  "
-          style="overflow:auto;height:100vh"
+          style="overflow:auto;height:100vh;position:relative"
         >
+         <img src="../assets/step1.png" class="otp-stepper"/>
           <form @submit.prevent="submitForm">
             <div class="container">
               <div class="success-container d-flex flex-column">
                 <span class="icon"><i class="fas fa-check"></i></span>
                 <h2 class="col-lg-8 mt-4 text-center" style="color:#5323D7">
-                  Verify your account
+                  Verify your Email
                 </h2>
                 <p class="col-lg-8 mt-4" style="text-align:center;">
                   A 6-digit code has been sent to your email. Enter to verify
@@ -48,6 +49,7 @@
                   <input type="number" maxlength="1" v-model="sixth" />
                 </div>
               </div>
+              <br/>
               <div class="d-flex justify-content-center">
                 <button
                   to="/verifysuccess"
@@ -159,7 +161,7 @@ export default {
             dismissible: true,
             position: "top-right",
           });
-           this.$router.push("/verifysuccess");
+           this.$router.push("/phone-token");
           // const currentUser = JSON.parse(user.data.data)
           this.loader = false;
        
@@ -190,6 +192,12 @@ export default {
 </script>
 
 <style scoped>
+.otp-stepper{
+  position: absolute;
+  top:5%;
+  right: 5%;
+  height: 30px !important;
+}
 .pin-code {
   padding: 0;
   margin: 0 auto;

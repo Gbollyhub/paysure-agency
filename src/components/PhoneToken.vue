@@ -22,38 +22,82 @@
           class="col-lg-7 d-flex justify-content-center align-items-center  "
           style="overflow:auto;height:100vh"
         >
+         <img src="../assets/step2.png" class="otp-stepper"/>
           <form @submit.prevent="submitForm">
             <div class="container">
               <div class="success-container d-flex flex-column">
                 <span class="icon"><i class="fas fa-check"></i></span>
-                <h2 class="col-lg-8 mt-4 text-center" style="color:#5323D7">
-                  Verify your account
-                </h2>
-                <p class="col-lg-8 mt-4" style="text-align:center;">
-                  A 6-digit code has been sent to your phone. Enter to verify
-                  your account.
-                </p>
+          
+                <h2 v-if="notResetOtp" class="col-lg-8 mt-4 text-center" style="color:#5323D7">
+                  Verify your Phone Number
+                </h2> 
+                <h2 v-else class="col-lg-8 mt-4 text-center" style="color:#5323D7">
+                  Resend OTP
+                </h2> 
 
-                <div class="pin-code mt-5" id="pincode" v-on="handlers">
+
+                <p v-if="notResetOtp" class="col-lg-8 mt-4" style="text-align:center;">
+                  Fill in your Phone Number and the 6-digit code sent to your phone. Enter to verify
+                  your account.
+                </p>             
+                <p v-else class="col-lg-8 mt-4" style="text-align:center;">
+                  Fill in your Phone Number below to continue
+                </p>         
+             
+
+                <br/><br/>
+ <input
+                        type="text"
+                        class="form-control"
+                        id="formGroupExampleInput"
+                        placeholder="Phone Number"
+                        v-model="phoneNumber"
+                        required
+                         autocomplete="off"
+                         style="width:45%"
+                         v-if="notResetOtp"
+                      />
+                       <input
+                       v-else
+                        type="text"
+                        class="form-control"
+                        id="formGroupExampleInput"
+                        placeholder="Phone Number"
+                        v-model="phoneNumber"
+                        required
+                         autocomplete="off"
+                         style="width:100%"
+                      />
+                <div class="pin-code mt-5" id="pincode" v-on="handlers" v-show="notResetOtp">
                   <input
                     type="number"
                     maxlength="1"
                     autofocus
                     v-model="first"
                   />
-                  <input type="number" maxlength="1" v-model="second" />
-                  <input type="number" maxlength="1" v-model="third" />
-                  <input type="number" maxlength="1" v-model="fourth" />
-                  <input type="number" maxlength="1" v-model="fifth" />
-                  <input type="number" maxlength="1" v-model="sixth" />
+                  <input type="number" maxlength="1" v-model="second" required/>
+                  <input type="number" maxlength="1" v-model="third" required/>
+                  <input type="number" maxlength="1" v-model="fourth" required/>
+                  <input type="number" maxlength="1" v-model="fifth" required/>
+                  <input type="number" maxlength="1" v-model="sixth" required/>
                 </div>
+                <br/>
+                <div v-if="notResetOtp" @click="notResetOtp = false" class="resend-otp">Resend Otp</div>
+                <div v-else @click="notResetOtp = true" class="resend-otp">Already have an Otp</div>
               </div>
-              <div class="d-flex justify-content-center">
+              <br/>
+              <div class="d-flex justify-content-center" v-if="notResetOtp">
                 <button
-                  to="/verifysuccess"
                   class="btn-login col-lg-6 mt-5"
                   type="submit"
                   >Submit</button
+                >
+              </div>
+                            <div class="d-flex justify-content-center" v-else>
+                <button
+                  class="btn-login col-lg-6 mt-5"
+                  @click="resendOTP"
+                  >Resend OTP</button
                 >
               </div>
             </div>
@@ -74,6 +118,7 @@ export default {
   data() {
     const vm = this;
     return {
+      phoneNumber: "",
       loader: false,
       baseurl:process.env.VUE_APP_BASE_URL,
       handlers: {
@@ -86,6 +131,7 @@ export default {
       fourth: "",
       fifth: "",
       sixth: "",
+      notResetOtp:true
     };
   },
 
@@ -128,6 +174,49 @@ export default {
       target.value = "";
     },
 
+    async resendOTP(){
+            try {
+        this.loader = true;
+        const user = await this.axios.post(
+          `${this.baseurl}/users/resendOtp?phoneNumber=${this.phoneNumber}`, 
+        );
+        if (user.data.data.responseCode === 0) { 
+          this.loader = false;   
+           this.$toast.open({
+            message: `<p style="color:white;">${user.data.data.responseMessage}</p>`,
+            type: "success",
+            duration: 5000,
+            dismissible: true,
+            position: "top-right",
+          });
+          this.notResetOtp = true
+           this.$router.push("/phone-token");
+          // const currentUser = JSON.parse(user.data.data)
+          
+       
+        } else {
+          this.loader = false;
+          this.$toast.open({
+            message: `<p style="color:white;">${user.data.data.responseMessage}</p>`,
+            type: "error",
+            duration: 5000,
+            dismissible: true,
+            position: "top-right",
+          });
+        }
+      } catch (e) {
+        this.loader = false;
+        this.$toast.open({
+          message: `<p style="color:white;">${e}</p>`,
+          type: "error",
+          duration: 5000,
+          dismissible: true,
+          position: "top-right",
+        });
+        console.log(e);
+      }
+    },
+
     async submitForm() {
       const formInput =
         this.first +
@@ -141,7 +230,7 @@ export default {
       try {
         this.loader = true;
         const user = await this.axios.post(
-          `${this.baseurl}/users/verifycode/${formInput}`, 
+          `${this.baseurl}/users/verifycodewithphone?phoneNumber=${this.phoneNumber}?OTP=${formInput}`, 
         );
         if (user.data.data.responseCode === 0) {
          
@@ -190,6 +279,18 @@ export default {
 </script>
 
 <style scoped>
+.otp-stepper{
+  position: absolute;
+  top:5%;
+  right: 5%;
+  height: 30px !important;
+}
+.resend-otp{
+  cursor: pointer;
+  color: #5323d7;
+  font-size: 14px;
+  text-decoration: underline;
+}
 .pin-code {
   padding: 0;
   margin: 0 auto;
